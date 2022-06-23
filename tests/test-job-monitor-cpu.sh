@@ -11,7 +11,8 @@ module use ../modules
 
 module load job-monitor
 
-export MONITOR_DEBUG_OUTPUT=y
+# Enable debugging output
+#export MONITOR_DEBUG_OUTPUT=y
 
 source job-monitor.sh
 

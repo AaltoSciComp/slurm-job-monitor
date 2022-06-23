@@ -13,5 +13,5 @@ local root = "../"
 prepend_path("PATH", root .. "bin")
 setenv("JOB_MONITOR_CONFIG_DIR", root .. "etc")
 setenv("JOB_MONITOR_GATHER_INTERVAL", "10s")
-setenv("JOB_MONITOR_FLUSH_INTERVAL", "60s")
+setenv("JOB_MONITOR_FLUSH_INTERVAL", "120s")
 setenv("JOB_MONITOR_AVERAGE_INTERVAL", "60s")
