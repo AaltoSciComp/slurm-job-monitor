@@ -1,0 +1,30 @@
+#!/bin/bash -l
+#SBATCH --time=00:15:00
+#SBATCH --mem=8G
+#SBATCH --cpus-per-task=6
+#SBATCH --output=test-job-monitor-gpu.out
+#SBATCH --gres=gpu:1
+
+## Starting monitoring
+
+module use ../modules
+
+module load job-monitor
+
+export MONITOR_DEBUG_OUTPUT=y
+
+source job-monitor.sh
+
+## Program code
+
+[[ ! -d examples ]] && git clone https://github.com/pytorch/examples.git
+
+module load anaconda/2022-01
+
+module list
+
+env > job-monitor-gpu-env.out
+
+cd examples/mnist
+
+time srun python main.py --epochs=20
