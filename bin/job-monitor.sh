@@ -14,10 +14,12 @@ else
       else
           MONITOR_OUTPUT_FILE=job_monitor_${SLURM_JOB_ID}.out
       fi
-      if [ -z ${CUDA_VISIBLE_DEVICES+x} ] ; then
-          export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-cpu.conf
+      if [ ! -z ${CUDA_VISIBLE_DEVICES+x} ] ; then
+          export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-cuda.conf
+      elif [ ! -z ${ROCR_VISIBLE_DEVICES+x} ] ; then
+          export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-rocm.conf
       else
-          export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-gpu.conf
+          export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-cpu.conf
       fi
       #export MONITOR_CGROUP=/sys/fs/cgroup/cpuset/slurm/uid_${UID}/job_${SLURM_JOB_ID}/step_batch/
       export MONITOR_CGROUP="/sys/fs/cgroup/cpuset/slurm/uid_${UID}/job_${SLURM_JOB_ID}/step_*"
