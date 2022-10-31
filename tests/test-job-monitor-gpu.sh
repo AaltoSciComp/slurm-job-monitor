@@ -20,7 +20,8 @@ source job-monitor.sh
 
 [[ ! -d examples ]] && git clone https://github.com/pytorch/examples.git
 
-module load anaconda/2022-01
+# Load extra modules
+[[ $# -gt 0 ]] && module load ${@:1}
 
 module list
 
