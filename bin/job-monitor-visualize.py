@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 import json
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mpl
 import click
 
 def normalize_metrics(hardware, data):
 
-    if hardware == "cpu":
+    if hardware in ('cpu', 'gpu'):
        return data / 100
     elif hardware == "ram":
        return data / (1024*1024)
-    elif hardware == "gpu":
-       return data / 100
     elif hardware == "vram":
        return data / 1024
 
@@ -23,9 +22,9 @@ def plot_metrics(metrics_df, job_id=None, gpu_plots=False, view=False, save=True
     mpl.style.use("default")
 
     ylabels = {
-      "cpu": "Number of CPUs in use",
+      "cpu": "CPU utilization",
       "ram": "MB of RAM in use",
-      "gpu": "Number of GPUs in use",
+      "gpu": "GPU utilization",
       "vram": "MB of VRAM in use",
     }
 
@@ -56,6 +55,10 @@ def plot_metrics(metrics_df, job_id=None, gpu_plots=False, view=False, save=True
             style=plot_styles,
             title=f"{hardware.upper()} usage for job {job_id}",
             ylabel=ylabels[hardware])
+
+        if hardware in ('cpu', 'gpu'):
+            ax.axhline(y=1, linestyle='-.', color='k', label=f"Single {hardware.upper()} fully utilized")
+            mpl.legend()
 
         if save:
             mpl.savefig(f"{hardware}_usage_{job_id}.png")
