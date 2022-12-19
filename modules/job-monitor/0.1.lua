@@ -4,9 +4,9 @@ whatis([[Name : job-monitor]])
 whatis([[Version : 0.1]])
 help([[This tool uses telegraf to monitor CPU and GPU usage during Slurm jobs' runtime.]])
 
-if not isloaded("telegraf/1.23.0") then
-    load("telegraf/1.23.0")
-end
+--if not isloaded("telegraf/1.23.0") then
+--load("telegraf/1.23.0")
+--end
 
 local root = "../"
 
