@@ -17,7 +17,7 @@ def normalize_metrics(hardware, data):
     return data
 
 
-def plot_metrics(metrics_df, job_id=None, gpu_plots=False, view=False, save=True):
+def plot_metrics(metrics_df, job_id=None, process=None, view=False, save=True):
 
     mpl.style.use("default")
 
@@ -61,7 +61,10 @@ def plot_metrics(metrics_df, job_id=None, gpu_plots=False, view=False, save=True
             mpl.legend()
 
         if save:
-            mpl.savefig(f"{hardware}_usage_{job_id}.png")
+            savename = f"{hardware}_usage_{job_id}"
+            if len(process) > 0:
+                savename = f"{savename}_{process}"
+            mpl.savefig(f"{savename}.png")
 
     if view:
         mpl.show()
@@ -72,18 +75,23 @@ def read_metrics(metrics):
     try:
         with open(metrics,"r") as f:
             lines = f.readlines()
-        job_id = int(json.loads(lines[0])["tags"]["job_id"])
 
         jsons = []
         for line in lines:
-            jsons.append(pd.read_json(line, dtype=True))
+            job_id = int(json.loads(line)["tags"]["job_id"])
+            try:
+                process = json.loads(line)["tags"]["process_name"]
+            except Exception as e:
+                process = ""
+            df = pd.read_json(line, dtype=True)
+            df["jobid"] = job_id
+            df["process"] = process
+            jsons.append(df)
     except Exception as e:
         print(f"Encountered a problem reading file {metrics}.")
         raise e
 
     metrics_df = pd.concat(jsons).reset_index()
-
-    gpu_data = (metrics_df["name"] == "gpu_utilization").shape[0] > 0
 
     metrics_df.drop(["tags", "name"], axis=1, inplace=True)
 
@@ -97,13 +105,17 @@ def read_metrics(metrics):
     metrics_df["Hardware"] = metrics_df["Metric"].apply(lambda x: x.split("_")[0])
     metrics_df.dropna(inplace=True)
 
-    return metrics_df, job_id, gpu_data
+    return metrics_df
 
-def export_metrics(metrics_df, job_id=None):
+def export_metrics(metrics_df, job_id=None, process=None):
 
     export_df = metrics_df.reset_index()
     export_df = export_df.pivot(index='Time', columns='Metric', values='Value')
-    export_df.to_csv(f"metrics_{job_id}.csv")
+    export_df.index.rename('time', inplace=True)
+    savename = f"metrics_{job_id}"
+    if len(process) > 0:
+        savename = f"{savename}_{process}"
+    export_df.to_csv(f"{savename}.csv")
 
 @click.command()
 @click.option("-n", "--no-save", is_flag=True, default=False, help="Do not save figures (default: False)")
@@ -112,11 +124,14 @@ def export_metrics(metrics_df, job_id=None):
 @click.argument("metrics")
 
 def main(metrics, no_save=True, view=False, export=False):
-    metrics_df, job_id, gpu_data = read_metrics(metrics)
-    if view or not no_save:
-        plot_metrics(metrics_df, job_id=job_id, gpu_plots=gpu_data, view=view, save=not no_save)
-    if export:
-        export_metrics(metrics_df, job_id=job_id)
+    metrics_df = read_metrics(metrics)
+    for grouping, data in metrics_df.groupby(["jobid", "process"]):
+        job_id = grouping[0]
+        process = grouping[1]
+        if view or not no_save:
+            plot_metrics(data, job_id=job_id, process=process, view=view, save=not no_save)
+        if export:
+            export_metrics(data, job_id=job_id, process=process)
 
 
 if __name__=="__main__":
