@@ -32,17 +32,20 @@ else
       export JOB_MONITOR_FLUSH_INTERVAL=${JOB_MONITOR_FLUSH_INTERVAL:-"60s"}
       export JOB_MONITOR_AVERAGE_INTERVAL=${JOB_MONITOR_AVERAGE_INTERVAL:-"60s"}
       MONITOR_PID_FILE=/tmp/job_monitor_${SLURM_JOB_ID}.pid
-      if [ -z ${MONITOR_DEBUG_OUTPUT+x} ] ; then
+      if [ -z ${JOB_MONITOR_DEBUG+x} ] ; then
           MONITOR_OUTPUT_FILE=/dev/null
       else
           MONITOR_OUTPUT_FILE=job_monitor_${SLURM_JOB_ID}.out
       fi
       if [ ! -z ${CUDA_VISIBLE_DEVICES+x} ] ; then
           export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-cuda.conf
+	  echo 'Monitoring detected a CUDA device.'
       elif [ ! -z ${ROCR_VISIBLE_DEVICES+x} ] ; then
           export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-rocm.conf
+	  echo 'Monitoring detected a ROCm device.'
       else
           export TELEGRAF_CONFIG_PATH=${JOB_MONITOR_CONFIG_DIR}/job-monitor-cpu.conf
+	  echo 'Monitoring did not detect a GPU device.'
       fi
       #export MONITOR_CGROUP=/sys/fs/cgroup/cpuset/slurm/uid_${UID}/job_${SLURM_JOB_ID}/step_batch/
       export MONITOR_CGROUP="/sys/fs/cgroup/cpuset/slurm/uid_${UID}/job_${SLURM_JOB_ID}/step_*"
@@ -54,7 +57,7 @@ else
 
   stop_monitoring(){
       MONITOR_PID_FILE=/tmp/job_monitor_${SLURM_JOB_ID}.pid
-      if [ -z ${MONITOR_DEBUG_OUTPUT+x} ] ; then
+      if [ -z ${JOB_MONITOR_DEBUG+x} ] ; then
           MONITOR_OUTPUT_FILE=/dev/null
       else
           MONITOR_OUTPUT_FILE=job_monitor_${SLURM_JOB_ID}.out
