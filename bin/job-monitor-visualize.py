@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from io import StringIO
 import json
 import numpy as np
 import pandas as pd
@@ -83,7 +84,7 @@ def read_metrics(metrics):
                 process = json.loads(line)["tags"]["process_name"]
             except Exception as e:
                 process = ""
-            df = pd.read_json(line, dtype=True)
+            df = pd.read_json(StringIO(line), dtype=True)
             df["jobid"] = job_id
             df["process"] = process
             jsons.append(df)
